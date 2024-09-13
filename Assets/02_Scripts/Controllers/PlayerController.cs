@@ -153,7 +153,7 @@ public class PlayerController : MonoBehaviour
                 _state = PlayerState.Idle;
                 return;
             }
-            
+
             transform.rotation = Quaternion.Slerp(transform.rotation,Quaternion.LookRotation(dir), 20*Time.deltaTime);
 
             Animator anim = GetComponent<Animator>();
@@ -223,7 +223,7 @@ public class PlayerController : MonoBehaviour
         Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
 
         RaycastHit hit;
-        if(Physics.Raycast(ray,out hit,100.0f, LayerMask.GetMask("Ground"))) // LayerMask.GetMask는 땅만 클릭될수있게 해주는 코드
+        if(Physics.Raycast(ray,out hit,100.0f, LayerMask.GetMask("Ground") | LayerMask.GetMask("Monster"))) // LayerMask.GetMask는 땅만 클릭될수있게 해주는 코드
         {
             _destPos = hit.point;
             //_moveToDest = true;
