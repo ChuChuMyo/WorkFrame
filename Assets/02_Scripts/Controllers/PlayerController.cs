@@ -6,8 +6,9 @@ using UnityEngine.EventSystems;
 using UnityEngine.AI;
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField]
-    float _speed = 10.0f;  // _ 를 사용하면 전역변수로 사용한다는 뜻
+    //[SerializeField]
+    //float _speed = 10.0f;  // _ 를 사용하면 전역변수로 사용한다는 뜻
+    PlayerStat _stat;
 
     bool _moveToDest = false;
     Vector3 _destPos;
@@ -22,6 +23,8 @@ public class PlayerController : MonoBehaviour
     PlayerState _state = PlayerState.Idle;
     void Start()
     {
+        _stat = gameObject.GetComponent<PlayerStat>();
+
         Managers.Input.KeyAction -= Onkeyboard;
         Managers.Input.KeyAction += Onkeyboard;
         Managers.Input.MouseAction -= OnMouseClicked;
@@ -144,7 +147,7 @@ public class PlayerController : MonoBehaviour
         {
             NavMeshAgent nma = gameObject.GetOrAddComponent<NavMeshAgent>();
 
-            float moveDist = Mathf.Clamp(_speed*Time.deltaTime,0, dir.magnitude);
+            float moveDist = Mathf.Clamp(_stat.MoveSpeed*Time.deltaTime,0, dir.magnitude);
             nma.Move(dir.normalized * moveDist);
 
             Debug.DrawRay(transform.position, dir.normalized, Color.green);
@@ -158,7 +161,7 @@ public class PlayerController : MonoBehaviour
 
             Animator anim = GetComponent<Animator>();
 
-            anim.SetFloat("speed",_speed);
+            anim.SetFloat("speed", _stat.MoveSpeed);
         }
     }
     void UpdateIdle()
@@ -179,7 +182,7 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.forward), 0.2f);
             //transform.Translate(Vector3.forward * Time.deltaTime * _speed);
             //transform.Translate(Vector3.forward * Time.deltaTime * _speed);   // 로컬 좌표라서 바라보는 방향으로 가면 됨
-            transform.position += Vector3.forward * Time.deltaTime * _speed;    // 월드 좌표라서 각 이동마다 방향을 정해줘야 함
+            transform.position += Vector3.forward * Time.deltaTime * _stat.MoveSpeed;    // 월드 좌표라서 각 이동마다 방향을 정해줘야 함
         }
 
         if (Input.GetKey(KeyCode.S))
@@ -188,7 +191,7 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.back), 0.2f);
             //transform.Translate(Vector3.back * Time.deltaTime * _speed);
             //transform.Translate(Vector3.forward * Time.deltaTime * _speed);
-            transform.position += Vector3.back * Time.deltaTime * _speed;
+            transform.position += Vector3.back * Time.deltaTime * _stat.MoveSpeed;
         }
 
         if (Input.GetKey(KeyCode.A))
@@ -197,7 +200,7 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.left), 0.2f);
             //transform.Translate(Vector3.left * Time.deltaTime * _speed);
             //transform.Translate(Vector3.forward * Time.deltaTime * _speed);
-            transform.position += Vector3.left * Time.deltaTime * _speed;
+            transform.position += Vector3.left * Time.deltaTime * _stat.MoveSpeed;
         }
 
         if (Input.GetKey(KeyCode.D))
@@ -206,12 +209,16 @@ public class PlayerController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(Vector3.right), 0.2f);
             //transform.Translate(Vector3.right * Time.deltaTime * _speed);
             //transform.Translate(Vector3.forward * Time.deltaTime * _speed);
-            transform.position += Vector3.right * Time.deltaTime * _speed;
+            transform.position += Vector3.right * Time.deltaTime * _stat.MoveSpeed;
         }
         _moveToDest = false; //클릭방식으로 이동 불가
     }
+
+    
     void OnMouseClicked(Define.MouseEvent evt)
     {
+        int _mask = (1 << (int)Define.Layer.Ground) | (1 << (int)Define.Layer.Monster);
+
         if (_state == PlayerState.Die)
             return;
         //Press일경우는 작동 안되게 (임시로 처리될 수 있게)
@@ -221,13 +228,20 @@ public class PlayerController : MonoBehaviour
 
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         Debug.DrawRay(Camera.main.transform.position, ray.direction * 100.0f, Color.red, 1.0f);
-
         RaycastHit hit;
-        if(Physics.Raycast(ray,out hit,100.0f, LayerMask.GetMask("Ground") | LayerMask.GetMask("Monster"))) // LayerMask.GetMask는 땅만 클릭될수있게 해주는 코드
+        if(Physics.Raycast(ray,out hit,100.0f, _mask)) // LayerMask.GetMask는 땅만 클릭될수있게 해주는 코드
         {
             _destPos = hit.point;
             //_moveToDest = true;
             _state = PlayerState.Moving;
+        }
+        if(hit.collider.gameObject.layer == (int)Define.Layer.Monster)
+        {
+            Debug.Log("Monster Click!");
+        }
+        else
+        {
+            Debug.Log("Monster Click!");
         }
     }
 }

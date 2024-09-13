@@ -31,4 +31,11 @@ public class Define // 상태라거나 필요한 변수같은걸 여기에 모아둠
         Effect,
         MaxCount,
     }
+
+    public enum Layer
+    {
+        Monster = 8,
+        Ground = 9,
+        Block = 10,
+    }
 }
